@@ -72,7 +72,6 @@ select:focus-visible{outline:3px solid var(--red-soft);border-color:var(--red)}
 .selection-bar input,.row-select input,.check-line input,.review-mode input{accent-color:var(--red);width:15px;height:15px;margin:0;flex-shrink:0}
 #selection-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #selection-actions .text-button{font-size:11px}.word-identity{display:flex;gap:10px;align-items:flex-start}.word-identity>div{min-width:0}.row-select{padding-top:5px;display:flex;cursor:pointer}.word-term{font-size:15px;text-align:left;font-weight:500;padding:0;overflow-wrap:anywhere;line-height:1.5}.word-term:hover{color:var(--red)}
-.word-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.word-tags>span{padding:2px 5px;background:var(--surface-hover);border-radius:4px;font-size:11px;color:var(--muted)}
 .word-context{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;color:var(--muted);margin-top:7px;line-height:1.6}.word-date small{display:block;margin-top:5px;font-size:11px}
 .field-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}.dialog-fields .field-pair{margin-top:18px}.dialog-fields .field-pair label{margin-top:0;display:block}.dialog-fields .field-pair label input{margin-top:8px}
 .word-details{margin-top:20px;border-top:1px solid var(--border);padding-top:16px}.word-details>summary{font-size:12px;font-weight:500;cursor:pointer;color:var(--muted)}.word-details>summary:hover{color:var(--red)}.word-details[open]>summary{margin-bottom:20px}.occurrence-list{padding-top:20px;font-size:12px}.occurrence-list>b{font-weight:500}.occurrence-list>div{padding:12px 0;border-bottom:1px solid var(--border)}.occurrence-list p{font-size:12px;color:var(--muted);white-space:pre-wrap}.occurrence-list a{display:inline-flex;gap:7px;align-items:center;font-size:11px;color:var(--red-hover);margin-top:6px}.occurrence-list a>.icon{width:13px;height:13px}
@@ -105,5 +104,188 @@ select:focus-visible{outline:3px solid var(--red-soft);border-color:var(--red)}
 @media(max-width:760px){.topic-section>header{align-items:flex-start;flex-direction:column;gap:12px}.group-row{align-items:flex-start;flex-direction:column;gap:8px}.group-row .inline-actions{width:100%}.group-row .inline-actions>.icon-button{margin-left:auto}.notebook-layout{grid-template-columns:1fr}.note-list{border-right:0;border-bottom:1px solid var(--border);max-height:300px}.note-list>section{padding:12px}.note-list-row{padding:12px}.note-editor #note-body{min-height:320px}.bulk-rows>div{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}.bulk-rows small{grid-column:1/-1}.notes-tools{flex-wrap:wrap}.notes-tools .search-field{flex-basis:100%}}
 @media(max-width:640px){.filter-details .library-actions{padding:0 16px}.library-actions .button{flex:1;font-size:12px;min-height:44px}.library-actions .text-button{margin-left:0;min-height:36px}.topic-filter-label{max-width:none;padding-left:16px;padding-right:16px}.date-controls{padding-left:16px;padding-right:16px;gap:12px}.date-controls input,.date-controls select{min-height:44px}.filter-chips{padding-left:16px;padding-right:16px}.topic-section>header{padding:20px}.group-list{padding:0 20px}.topic-section>footer{padding:16px 20px;flex-wrap:wrap}.topic-section .text-button{min-height:36px}.topic-section .icon-button{width:44px;height:44px}.notes-tools{padding:16px}.notes-list-toolbar{padding:12px 16px;gap:12px;flex-wrap:wrap}.notes-list-toolbar>.text-button{margin-left:0}.note-editor{padding:20px 16px}.note-editor #note-title{font-size:20px}.note-editor>footer{flex-wrap:wrap}.bulk-dialog{width:calc(100% - 24px)}.sidebar-bottom .privacy-note{display:none}.nav-label{margin-top:24px}.sidebar-bottom{padding-top:12px}.notebook-layout #note-editor-pane{scroll-margin-top:80px}}
 
-.word-added-date{display:block;font-size:11px;color:var(--muted);margin-top:3px}.date-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.date-controls:has(>label:nth-child(3)){grid-template-columns:repeat(4,minmax(0,1fr))}
+.date-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.date-controls:has(>label:nth-child(3)){grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:1200px){.date-controls:has(>label:nth-child(3)){grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* 1.3.1 — consistent form controls across the dashboard and popup. */
+select,
+input:not([type=checkbox]):not([type=radio]):not([type=file]),
+textarea{
+  font-family:var(--font);
+  transition:border-color var(--fast) var(--ease),box-shadow var(--fast) var(--ease),background-color var(--fast) var(--ease);
+}
+select{
+  appearance:none;
+  -webkit-appearance:none;
+  padding-right:38px!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2368686F' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:16px;
+  cursor:pointer;
+  text-overflow:ellipsis;
+}
+select:not(:disabled):hover{border-color:var(--muted);background-color:var(--surface-hover)}
+select:focus-visible{
+  outline:0;
+  border-color:var(--red);
+  box-shadow:0 0 0 3px var(--red-soft);
+  background-color:var(--surface);
+}
+.dialog-fields input:not([type=checkbox]):not([type=radio]),
+.dialog-fields select,
+.organize-controls select,
+.date-controls input,
+.date-controls select,
+.note-metadata select{min-height:44px;line-height:1.5}
+.dialog-fields input:not(:disabled):hover,
+.dialog-fields textarea:not(:disabled):hover,
+.date-controls input:not(:disabled):hover,
+.note-editor input:not(:disabled):hover,
+.note-editor textarea:not(:disabled):hover,
+.settings-card textarea:not(:disabled):hover{border-color:var(--muted)}
+.dialog-fields input:focus,
+.dialog-fields textarea:focus,
+.date-controls input:focus,
+.note-editor input:focus,
+.note-editor textarea:focus,
+.settings-card textarea:focus{
+  outline:0;
+  border-color:var(--red);
+  box-shadow:0 0 0 3px var(--red-soft);
+}
+input[type=checkbox]:not(.switch input){
+  appearance:none;
+  -webkit-appearance:none;
+  display:inline-block;
+  width:17px;height:17px;min-width:17px;min-height:17px;
+  flex:0 0 17px;
+  padding:0;
+  border:1px solid var(--control);
+  border-radius:5px;
+  background:var(--surface) center / 13px 13px no-repeat;
+  vertical-align:middle;
+  cursor:pointer;
+  transition:border-color var(--fast),background-color var(--fast),box-shadow var(--fast);
+}
+input[type=checkbox]:not(.switch input):not(:disabled):hover{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+input[type=checkbox]:not(.switch input):checked{
+  border-color:var(--red);background-color:var(--red);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3.5 8 3 3 6-6'/%3E%3C/svg%3E");
+}
+input[type=checkbox]:not(.switch input):indeterminate{
+  border-color:var(--red);background-color:var(--red);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+}
+input[type=checkbox]:not(.switch input):focus-visible{outline:0;box-shadow:0 0 0 3px var(--red-border)}
+select:disabled,input:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}
+select[aria-invalid=true],input[aria-invalid=true],textarea[aria-invalid=true]{border-color:var(--red)}
+@media(max-width:640px){
+  select,.dialog-fields select,.organize-controls select,.date-controls select,.note-metadata select,.notes-list-toolbar select{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){select,input,textarea{transition:none!important}}
+@media(forced-colors:active){
+  input[type=checkbox]:not(.switch input){appearance:auto;background-image:none}
+  select{appearance:auto;background-image:none;padding-right:12px!important}
+}
+
+/* Vocabulary: compact filters, independent table. */
+.vocabulary-workspace .page-heading{margin-bottom:20px}
+.vocab-heading-actions{display:flex;gap:10px;flex-wrap:wrap}
+.vocab-filter-panel{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:16px}
+.vocab-filter-panel .vocab-controls{padding:12px 16px;gap:12px}
+.vocab-filter-panel .search-field{flex:1;width:auto;max-width:520px}
+.vocab-filter-panel .vocab-controls>.text-button{margin-left:auto;white-space:nowrap}
+[data-action=toggle-vocab-filters] .icon{width:14px;height:14px;transform:rotate(90deg);transition:transform var(--fast)}
+[data-action=toggle-vocab-filters][aria-expanded=true] .icon{transform:rotate(-90deg)}
+#vocab-filter-fields{border-top:1px solid var(--border);padding:16px}
+#vocab-filter-fields[hidden]{display:none}
+.vocab-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.vocab-filter-grid>label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;min-width:0}
+.vocab-filter-grid select{width:100%;font-size:12px}
+.vocab-filter-panel .date-controls{padding:0;grid-template-columns:repeat(4,minmax(0,1fr))}
+.vocab-filter-footer{display:flex;justify-content:space-between;gap:12px;margin-top:14px}
+.vocab-filter-panel .filter-chips:empty{display:none}
+.vocab-filter-panel .filter-chips:not(:empty){padding:0 16px 12px}
+.vocab-table-options{display:flex;align-items:center;gap:14px;min-width:0}
+.vocab-table-options select{font-size:11px;min-height:34px;max-width:190px;padding-top:6px;padding-bottom:6px}
+.vocabulary-workspace .filter-row{padding:0 16px;gap:12px}
+.vocabulary-workspace .word-table-scroll{overflow:auto;max-height:max(360px,calc(100dvh - 320px));border-radius:0 0 var(--radius) var(--radius)}
+.vocabulary-workspace .word-table{display:table;table-layout:fixed;border-collapse:separate;border-spacing:0;width:100%;min-width:900px;padding:0}
+.vocabulary-workspace .word-table-head,.vocabulary-workspace .word-row{display:table-row;padding:0}
+.vocabulary-workspace .word-table th{position:sticky;top:0;z-index:1;background:var(--canvas);text-align:left;font-weight:500;font-size:11px;color:var(--muted);height:36px;border-bottom:1px solid var(--border);padding:8px 12px}
+.vocabulary-workspace .word-table th:first-child{padding-left:16px}
+.vocabulary-workspace .word-row>td{display:table-cell;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;height:64px}
+.vocabulary-workspace .word-row:last-child>td{border-bottom:0}
+.vocabulary-workspace .word-row>td:first-child{padding-left:16px}
+.word-identity-content{display:flex;align-items:center;gap:10px;min-width:0}
+.word-identity-content>div{min-width:0}
+.vocabulary-workspace .row-select{padding:0}
+.vocabulary-workspace .word-term{font-size:13px;font-weight:500;line-height:1.5;text-align:left;padding:0;overflow-wrap:anywhere}
+.vocabulary-workspace .word-term:hover{color:var(--red)}
+.vocabulary-workspace .word-source{font-size:10px;margin-top:2px}
+.vocabulary-workspace .word-definition{font-size:12px;line-height:1.6;white-space:normal}
+.vocabulary-workspace .word-meaning{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.vocabulary-workspace .word-context{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:10px;margin-top:2px}
+.vocabulary-workspace .word-edit{position:static;width:28px;height:32px}
+.vocabulary-workspace .word-state{white-space:nowrap}
+.vocabulary-workspace .status-pill{font-size:10px;padding:3px 6px}
+@media(max-width:760px){
+  .vocabulary-workspace .filter-row{flex-wrap:wrap;gap:0;padding-bottom:8px}
+  .vocab-table-options{width:100%;justify-content:space-between}
+  .vocab-table-options .result-count{display:block}
+}
+@media(max-width:640px){
+  .vocab-heading-actions{width:100%}.vocab-heading-actions>.button{flex:1}
+  .vocab-filter-panel .vocab-controls{flex-wrap:wrap}
+  .vocab-filter-panel .search-field{flex-basis:100%;max-width:none}
+  .vocab-filter-panel .vocab-controls>.button>.icon{display:block}
+  .vocab-filter-grid{grid-template-columns:1fr 1fr}.vocab-filter-grid>label:first-child{grid-column:1/-1}
+  .vocab-filter-panel .date-controls{grid-template-columns:1fr 1fr}
+  .vocabulary-workspace .word-row{position:static}
+  .vocab-table-options select{min-height:40px}
+  .vocabulary-workspace .word-table-scroll{max-height:65dvh}
+}
+
+/* Compact vocabulary column widths. */
+.vocabulary-workspace .word-table th:first-child{width:25%}
+.vocabulary-workspace .word-table th:nth-child(2){width:30%}
+.vocabulary-workspace .word-table th:nth-child(3){width:12%}
+.vocabulary-workspace .word-table th:nth-child(4){width:9%}
+.vocabulary-workspace .word-table th:nth-child(5){width:11%}
+.vocabulary-workspace .word-table th:nth-child(6){width:9%}
+.vocabulary-workspace .word-table th:last-child{width:4%}
+.word-review-count,.word-created-date{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* Keep table geometry stable while opening and closing an editor. */
+html{scrollbar-gutter:stable}
+.vocabulary-workspace .word-table-scroll{scrollbar-gutter:stable;overflow-anchor:none}
+.word-dialog{animation:dialog-fade-in var(--fast) var(--ease)}
+@keyframes dialog-fade-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.word-dialog{animation:none}}
+
+/* Reserve the bulk-action height before selection so the table stays in place. */
+.vocabulary-workspace .selection-bar{
+  padding:8px 16px;
+  height:49px;
+  min-height:49px;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+}
+.vocabulary-workspace .selection-bar::-webkit-scrollbar{display:none}
+.vocabulary-workspace .selection-bar>label{flex-shrink:0;white-space:nowrap}
+.vocabulary-workspace #selection-actions{
+  flex:0 0 auto;
+  flex-wrap:nowrap;
+  white-space:nowrap;
+  min-height:32px;
+}
+.vocabulary-workspace #selection-actions>button{
+  height:32px;
+  min-height:32px;
+  flex-shrink:0;
+  padding-top:4px;
+  padding-bottom:4px;
+}
