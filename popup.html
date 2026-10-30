@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IELTS Desk</title><link rel="icon" href="public/icons/icon-32.png"><link rel="stylesheet" href="styles.css"></head>
+<body class="popup-body">
+  <header class="popup-header"><a class="brand" href="dashboard.html"><img src="public/icons/mark.svg" alt=""><span><b>IELTS Desk</b><small>Nhặt từ hay, giữ lại lâu.</small></span></a><button class="icon-button" id="open-desk" aria-label="Mở góc học" data-icon="external"></button></header>
+  <main>
+    <section class="popup-capture"><h1>Vừa gặp một từ hay?</h1><p>Lưu ngay, bổ sung nghĩa khi bạn rảnh.</p><form id="quick-save"><label class="sr-only" for="quick-term">Từ hoặc cụm từ</label><div class="quick-input"><input id="quick-term" name="term" maxlength="90" placeholder="Nhập từ hoặc cụm từ…" required autocomplete="off"><button class="icon-button" aria-label="Lưu từ" data-icon="plus"></button></div><p class="form-message sr-only" id="save-message" role="status"></p></form><button class="text-button duplicate-link" id="open-existing" hidden>Mở từ đã lưu</button></section>
+    <section class="popup-recent"><div class="section-top"><h2>Mới lưu gần đây</h2><button class="text-button" id="see-all">Xem tất cả</button></div><div id="recent-words"></div></section>
+    <button class="popup-review" id="start-session"><span class="review-symbol" data-icon="cards"></span><span><b id="due-label">Ôn lại từ đã lưu</b><small>Vài phút để nhớ lâu hơn.</small></span><span data-icon="arrow"></span></button>
+    <section class="capture-setting"><span data-icon="search"></span><div><h2>Lưu khi bôi đen</h2><p id="capture-copy">Bật nút lưu nhanh trên trang web.</p></div><button class="small-button" id="enable-capture">Bật</button></section>
+  </main>
+  <footer class="popup-local"><span data-icon="lock"></span>Dữ liệu lưu riêng trên thiết bị.</footer>
+  <script src="model.js"></script><script src="common.js"></script><script src="popup.js"></script>
+</body></html>
