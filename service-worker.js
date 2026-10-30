@@ -3,7 +3,11 @@ let queue=Promise.resolve();
 function serial(task){const next=queue.then(task);queue=next.catch(()=>{});return next;}
 async function readData(){
   const raw=await chrome.storage.local.get(null);
-  if(raw.schemaVersion===DeskModel.VERSION)return DeskModel.normalize(raw);
+  if(raw.schemaVersion===DeskModel.VERSION){
+    const data=DeskModel.normalize(raw);
+    if((raw.trash||[]).length!==data.trash.length||(raw.trash||[]).some((word,index)=>word.deletedAt!==data.trash[index]?.deletedAt)){data.revision++;await chrome.storage.local.set({trash:data.trash,revision:data.revision});}
+    return data;
+  }
   if(!raw.settings){const scripts=await chrome.scripting.getRegisteredContentScripts();raw.settings={captureEnabled:scripts.some(script=>script.id==='selection-chip'),excludedSites:[]};}
   const data=DeskModel.normalize(raw);
   await chrome.storage.local.set({...data,migrationBackup:raw});return data;
