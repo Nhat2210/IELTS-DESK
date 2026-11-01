@@ -1,6 +1,6 @@
 /* Pure data model shared by the worker, preview and verification scripts. */
 (() => {
-  const VERSION=3, DAY=86400000, intervals=[1,3,7,14,30,60];
+  const VERSION=4, DAY=86400000, intervals=[1,3,7,14,30,60];
   const fail=(message,code='INVALID',details={})=>{throw Object.assign(new Error(message),{code,...details});};
   const text=(value,max=10000)=>typeof value==='string'?value.slice(0,max):'';
   const key=value=>text(value,90).normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('en');
@@ -33,7 +33,11 @@
     for(const note of notes){const group=groups.find(g=>g.id===note.groupId);note.groupId=group?.id||'';note.topicId=group?.topicId||(topics.some(t=>t.id===note.topicId)?note.topicId:'');}
     const deletedNotes=(Array.isArray(raw.deletedNotes)?raw.deletedNotes:[]).map(n=>normalizeNote(n,now));
     const settings={captureEnabled:Boolean(raw.settings?.captureEnabled),excludedSites:normalizeSites(raw.settings?.excludedSites||[])};
-    return {schemaVersion:VERSION,revision:finite(raw.revision),words,drafts,topics,groups,notes,deletedNotes,studyEvents,legacySessions:finite(raw.legacySessions,Math.max(0,finite(raw.sessions)-studyEvents.length)),sessions:finite(raw.legacySessions,Math.max(0,finite(raw.sessions)-studyEvents.length))+studyEvents.length,streak:finite(raw.streak),lastStudy:text(raw.lastStudy,100),deletedDrafts:Array.isArray(raw.deletedDrafts)?raw.deletedDrafts.map(d=>normalizeDraft(d,now)):[],trash:Array.isArray(raw.trash)?raw.trash.map(w=>({...normalizeWord(w,eventMap,now),deletedAt:finite(w.deletedAt,now)})):[],settings,recoverySnapshot:raw.recoverySnapshot||null};
+    return {schemaVersion:VERSION,passages:(Array.isArray(raw.passages)?raw.passages:[]).map(p=>normalizePassage(p,now)),revision:finite(raw.revision),words,drafts,topics,groups,notes,deletedNotes,studyEvents,legacySessions:finite(raw.legacySessions,Math.max(0,finite(raw.sessions)-studyEvents.length)),sessions:finite(raw.legacySessions,Math.max(0,finite(raw.sessions)-studyEvents.length))+studyEvents.length,streak:finite(raw.streak),lastStudy:text(raw.lastStudy,100),deletedDrafts:Array.isArray(raw.deletedDrafts)?raw.deletedDrafts.map(d=>normalizeDraft(d,now)):[],trash:Array.isArray(raw.trash)?raw.trash.map(w=>({...normalizeWord(w,eventMap,now),deletedAt:finite(w.deletedAt,now)})):[],settings,recoverySnapshot:raw.recoverySnapshot||null};
+  }
+  function normalizePassage(p,now=Date.now()){
+    if(!p||typeof p!=='object')fail('Bài đọc không hợp lệ.');
+    return {id:text(p.id,100)||uid(),title:text(p.title,200).trim()||'Bài đọc chưa đặt tên',sourceLabel:text(p.sourceLabel,300).trim(),url:url(p.url),topicId:text(p.topicId,100),notes:text(p.notes,10000),wordIds:[...new Set(Array.isArray(p.wordIds)?p.wordIds.filter(id=>typeof id==='string'):[])],createdAt:finite(p.createdAt,now),updatedAt:finite(p.updatedAt,now)};
   }
   function normalizeDraft(d,now=Date.now()){if(!d||typeof d!=='object')fail('Bản nháp không hợp lệ.');return{id:text(d.id,100)||uid(),importKey:text(d.importKey,180),title:text(d.title,120).trim()||'Bài viết chưa đặt tên',task:d.task==='task1'?'task1':'task2',prompt:text(d.prompt,10000).trim(),body:text(d.body,200000),checklist:[0,1,2,3].map(i=>Boolean(d.checklist?.[i])),createdAt:finite(d.createdAt,now),updatedAt:finite(d.updatedAt,now)};}
   function normalizeNote(n,now=Date.now()){if(!n||typeof n!=='object')fail('Ghi chú không hợp lệ.');return {id:text(n.id,100)||uid(),title:text(n.title,120).trim()||'Ghi chú chưa đặt tên',body:text(n.body,100000),topicId:text(n.topicId,100),groupId:text(n.groupId,100),skill:['reading','listening','writing','speaking'].includes(n.skill)?n.skill:'',wordIds:[...new Set(Array.isArray(n.wordIds)?n.wordIds.filter(v=>typeof v==='string'):[])],pinned:Boolean(n.pinned),dailyKey:text(n.dailyKey,10),importKey:text(n.importKey,180),createdAt:finite(n.createdAt,now),updatedAt:finite(n.updatedAt,now)};}
@@ -57,13 +61,14 @@
     if(!Array.isArray(input.data.words)||!Array.isArray(input.data.drafts)||!Array.isArray(input.data.studyEvents))fail('Bản sao lưu thiếu dữ liệu bắt buộc.');
     if(input.data.words.length>50000||input.data.drafts.length>5000)fail('Bản sao lưu vượt giới hạn số bản ghi.');
     for(const word of input.data.words)if(!word||typeof word.term!=='string'||typeof word.meaning!=='string'||word.meaning.length>10000||typeof word.example!=='string'||word.example.length>10000)fail('Có bản ghi từ vựng không hợp lệ trong file.');for(const draft of input.data.drafts)if(!draft||typeof draft.body!=='string'||draft.body.length>200000||typeof draft.title!=='string')fail('Có bản nháp không hợp lệ trong file.');
-    for(const field of ['topics','groups','notes','deletedNotes'])if(input.data[field]!==undefined&&!Array.isArray(input.data[field]))fail('Dữ liệu chủ đề / ghi chú không hợp lệ.');
+    for(const field of ['topics','groups','notes','deletedNotes','passages'])if(input.data[field]!==undefined&&!Array.isArray(input.data[field]))fail('Dữ liệu chủ đề / ghi chú không hợp lệ.');
     for(const n of [...(input.data.notes||[]),...(input.data.deletedNotes||[])])if(!n||typeof n.title!=='string'||typeof n.body!=='string'||n.body.length>100000)fail('Ghi chú trong bản sao lưu không hợp lệ.');
-    const imported=normalize(input.data);const seen=new Set();for(const w of imported.words){if(seen.has(w.id))fail('File chứa ID từ vựng trùng nhau.');seen.add(w.id);}for(const records of [imported.drafts,imported.trash,imported.deletedDrafts,imported.topics,imported.groups,imported.notes,imported.deletedNotes]){const ids=new Set();for(const row of records){if(ids.has(row.id))fail('File chứa ID bản ghi trùng nhau.');ids.add(row.id);}}return imported;
+    for(const passage of input.data.passages||[])if(!passage||typeof passage.title!=='string'||passage.title.length>200||!Array.isArray(passage.wordIds))fail('Bài đọc trong bản sao lưu không hợp lệ.');
+    const imported=normalize(input.data);const seen=new Set();for(const w of imported.words){if(seen.has(w.id))fail('File chứa ID từ vựng trùng nhau.');seen.add(w.id);}for(const records of [imported.drafts,imported.trash,imported.deletedDrafts,imported.topics,imported.groups,imported.notes,imported.deletedNotes,imported.passages]){const ids=new Set();for(const row of records){if(ids.has(row.id))fail('File chứa ID bản ghi trùng nhau.');ids.add(row.id);}}return imported;
   }
   function draftContent(draft){return JSON.stringify([draft.title,draft.task,draft.prompt,draft.body,draft.checklist]);}
   function draftImportKey(draft){return `${draft.id}:${draft.updatedAt}:${hash(JSON.stringify([draft.title,draft.prompt,draft.body,draft.checklist]))}`;}
-  function importStats(data,backup){const incoming=parseBackup(backup);const keys=new Set(data.words.map(w=>key(w.term)));let added=0,merged=0;for(const w of incoming.words){if(keys.has(key(w.term)))merged++;else{added++;keys.add(key(w.term));}}const draftsAdded=incoming.drafts.filter(draft=>{const existing=data.drafts.find(d=>d.id===draft.id);return !existing||(draftContent(draft)!==draftContent(existing)&&!data.drafts.some(d=>d.importKey===draftImportKey(draft)));}).length;return {wordsAdded:added,wordsMerged:merged,draftsAdded,events:incoming.studyEvents.filter(e=>!data.studyEvents.some(old=>old.id===e.id)).length,notes:incoming.notes.length,topics:incoming.topics.length,groups:incoming.groups.length,trash:incoming.trash.length};}
+  function importStats(data,backup){const incoming=parseBackup(backup);const keys=new Set(data.words.map(w=>key(w.term)));let added=0,merged=0;for(const w of incoming.words){if(keys.has(key(w.term)))merged++;else{added++;keys.add(key(w.term));}}const draftsAdded=incoming.drafts.filter(draft=>{const existing=data.drafts.find(d=>d.id===draft.id);return !existing||(draftContent(draft)!==draftContent(existing)&&!data.drafts.some(d=>d.importKey===draftImportKey(draft)));}).length;return {wordsAdded:added,wordsMerged:merged,draftsAdded,events:incoming.studyEvents.filter(e=>!data.studyEvents.some(old=>old.id===e.id)).length,notes:incoming.notes.length,topics:incoming.topics.length,groups:incoming.groups.length,trash:incoming.trash.length,passages:incoming.passages.length};}
 
   function combine(existing,incoming){
     for(const field of ['meaning','example','context','source','title','sourceLabel','collection','groupId','topicId'])if(!existing[field])existing[field]=incoming[field];
@@ -74,6 +79,25 @@
   function apply(raw,command,now=Date.now()) {
     let data=normalize(raw,now);const p=command.payload||{};let result={};
     switch(command.type){
+      case 'UPSERT_PASSAGE':{
+        const existing=data.passages.find(item=>item.id===p.id);if(p.id&&!existing)fail('Bài đọc không còn tồn tại.','NOT_FOUND');
+        const values=p.passage||{},title=text(values.title,200).trim();if(!title)fail('Nhập tên bài đọc.');
+        if(values.url&&!url(values.url))fail('Đường dẫn bài đọc cần bắt đầu bằng http hoặc https.');
+        if(values.topicId&&!data.topics.some(t=>t.id===values.topicId))fail('Chủ đề không còn tồn tại.');
+        const passage=normalizePassage({...existing,...values,title,id:existing?.id||uid(),wordIds:existing?.wordIds||[],createdAt:existing?.createdAt||now,updatedAt:now},now);
+        if(existing)Object.assign(existing,passage);else data.passages.unshift(passage);result={passageId:passage.id};break;
+      }
+      case 'SET_PASSAGE_WORDS':{
+        const passage=data.passages.find(item=>item.id===p.id);if(!passage)fail('Bài đọc không còn tồn tại.','NOT_FOUND');
+        const activeIds=new Set(data.words.map(w=>w.id));
+        if(!Array.isArray(p.ids)||p.ids.some(id=>!activeIds.has(id)))fail('Một số từ đã bị xóa. Hãy mở lại danh sách.');
+        // Preserve associations to trashed words so restoring a word also restores its reading links.
+        passage.wordIds=[...new Set([...passage.wordIds.filter(id=>!activeIds.has(id)),...p.ids])];passage.updatedAt=now;break;
+      }
+      case 'DELETE_PASSAGE':{
+        if(!data.passages.some(item=>item.id===p.id))fail('Bài đọc không còn tồn tại.','NOT_FOUND');
+        data.passages=data.passages.filter(item=>item.id!==p.id);break;
+      }
       case 'UPSERT_TOPIC':case 'UPSERT_GROUP':{
         const isTopic=command.type==='UPSERT_TOPIC',list=isTopic?data.topics:data.groups,name=text(p.name,80).trim();if(!name)fail('Nhập tên trước khi lưu.');
         const existing=list.find(item=>item.id===p.id);if(p.id&&!existing)fail('Không tìm thấy chủ đề / nhóm.');if(list.some(item=>item.id!==p.id&&key(item.name)===key(name)))fail('Tên này đã tồn tại.');
@@ -86,7 +110,7 @@
         const isTopic=command.type==='DELETE_TOPIC',list=isTopic?data.topics:data.groups;if(!list.some(item=>item.id===p.id))fail('Không tìm thấy chủ đề / nhóm.');
         if(isTopic){data.topics=data.topics.filter(t=>t.id!==p.id);for(const group of data.groups)if(group.topicId===p.id)group.topicId='';}
         else data.groups=data.groups.filter(g=>g.id!==p.id);
-        for(const item of [...data.words,...data.notes,...data.trash,...data.deletedNotes]){if(isTopic&&item.topicId===p.id)item.topicId='';if(!isTopic&&item.groupId===p.id){item.groupId='';if('collection'in item)item.collection='';}}
+        for(const item of [...data.words,...data.notes,...data.trash,...data.deletedNotes,...data.passages]){if(isTopic&&item.topicId===p.id)item.topicId='';if(!isTopic&&item.groupId===p.id){item.groupId='';if('collection'in item)item.collection='';}}
         break;
       }
       case 'MOVE_WORDS':{
@@ -106,12 +130,13 @@
       case 'DELETE_NOTE':{const note=data.notes.find(n=>n.id===p.id);if(!note)fail('Không tìm thấy ghi chú.');data.deletedNotes.push(note);data.notes=data.notes.filter(n=>n.id!==p.id);break;}
       case 'RESTORE_NOTE':{const note=data.deletedNotes.find(n=>n.id===p.id);if(!note)fail('Không tìm thấy ghi chú.');data.deletedNotes=data.deletedNotes.filter(n=>n!==note);if(data.notes.some(n=>n.id===note.id))note.id=uid();data.notes.unshift(note);result={noteId:note.id};break;}
       case 'UPSERT_WORD':{
-        const values={...(p.word||{})};if('groupId'in values){const group=data.groups.find(g=>g.id===values.groupId);if(values.groupId&&!group)fail('Nhóm không còn tồn tại.');values.collection=group?.name||'';values.topicId=group?.topicId||values.topicId||'';}if(values.topicId&&!data.topics.some(t=>t.id===values.topicId))fail('Chủ đề không còn tồn tại.');const normalized=term(values.term), existing=data.words.find(w=>p.id?w.id===p.id:key(w.term)===key(normalized));
+        const values={...(p.word||{})};const passage=values.passageId?data.passages.find(item=>item.id===values.passageId):null;if(values.passageId&&!passage)fail('Bài đọc không còn tồn tại.','NOT_FOUND');if('groupId'in values){const group=data.groups.find(g=>g.id===values.groupId);if(values.groupId&&!group)fail('Nhóm không còn tồn tại.');values.collection=group?.name||'';values.topicId=group?.topicId||values.topicId||'';}if(values.topicId&&!data.topics.some(t=>t.id===values.topicId))fail('Chủ đề không còn tồn tại.');const normalized=term(values.term), existing=data.words.find(w=>p.id?w.id===p.id:key(w.term)===key(normalized));
         const collision=data.words.find(w=>w.id!==p.id&&key(w.term)===key(normalized));
         if(p.id&&!existing)fail('Từ này đã bị xóa.','NOT_FOUND');
         if(p.id&&collision)fail('Từ này đã có trong sổ. Hãy mở bản đã lưu để chỉnh sửa.','DUPLICATE',{wordId:collision.id});
         if(p.id){const merged=normalizeWord({...existing,...values,id:existing.id,term:normalized,updatedAt:now},data.studyEvents,now);merged.contexts=addContexts(existing.contexts,merged.contexts);Object.assign(existing,merged);result={wordId:existing.id};}
         else {const incoming=normalizeWord({...values,id:uid(),term:normalized,createdAt:now,updatedAt:now},[],now);if(existing){combine(existing,incoming);existing.updatedAt=now;result={duplicate:true,wordId:existing.id};}else{data.words.unshift(incoming);result={duplicate:false,wordId:incoming.id};}}
+        if(passage&&!passage.wordIds.includes(result.wordId)){passage.wordIds.push(result.wordId);passage.updatedAt=now;}
         break;
       }
       case 'DELETE_WORD':{const word=data.words.find(w=>w.id===p.id);if(!word)fail('Từ này không còn trong sổ.','NOT_FOUND');data.words=data.words.filter(w=>w.id!==p.id);data.trash.unshift({...word,deletedAt:now});result={deletedId:p.id};break;}
@@ -135,6 +160,13 @@
         for(const group of incoming.groups){let match=data.groups.find(g=>key(g.name)===key(group.name));if(!match){match={...group,id:data.groups.some(g=>g.id===group.id)?uid():group.id,topicId:topicMap.get(group.topicId)||''};data.groups.push(match);}groupMap.set(group.id,match.id);}
         for(const item of [...incoming.words,...incoming.trash,...incoming.notes,...incoming.deletedNotes]){item.topicId=topicMap.get(item.topicId)||'';item.groupId=groupMap.get(item.groupId)||'';const group=data.groups.find(g=>g.id===item.groupId);if(group)item.topicId=group.topicId;if('collection'in item)item.collection=group?.name||'';}
         for(const word of incoming.words){const existing=data.words.find(w=>key(w.term)===key(word.term));if(existing){idMap.set(word.id,existing.id);combine(existing,word);}else{const oldId=word.id;if(data.words.some(w=>w.id===word.id))word.id=uid();idMap.set(oldId,word.id);data.words.push(word);}}
+        for(const passage of incoming.passages){
+          const mapped={...passage,topicId:topicMap.get(passage.topicId)||'',wordIds:passage.wordIds.map(id=>idMap.get(id)||id)};
+          const content=p=>JSON.stringify([p.title,p.sourceLabel,p.url,p.topicId,p.notes,p.wordIds]);
+          const existing=data.passages.find(p=>p.id===mapped.id);
+          if(!existing)data.passages.push(mapped);
+          else if(content(existing)!==content(mapped)&&!data.passages.some(p=>content(p)===content(mapped)))data.passages.push({...mapped,id:uid()});
+        }
         for(const draft of incoming.drafts){const existing=data.drafts.find(d=>d.id===draft.id);if(!existing)data.drafts.push(draft);else if(draftContent(draft)!==draftContent(existing)){const importKey=draftImportKey(draft);if(!data.drafts.some(d=>d.importKey===importKey))data.drafts.push({...draft,id:uid(),importKey,title:`${draft.title} (bản nhập)`});}}
         for(const note of incoming.notes){note.wordIds=note.wordIds.map(id=>idMap.get(id)||id);const existing=data.notes.find(n=>n.id===note.id);const content=n=>JSON.stringify([n.title,n.body,n.topicId,n.groupId,n.skill,n.wordIds,n.pinned,n.dailyKey]);if(!existing)data.notes.push(note);else if(content(existing)!==content(note)){const importKey=`${note.id}:${hash(content(note))}`;if(!data.notes.some(n=>n.importKey===importKey))data.notes.push({...note,id:uid(),importKey,title:`${note.title} (bản nhập)`});}}
         for(const note of incoming.deletedNotes)if(!data.notes.some(n=>n.id===note.id)&&!data.deletedNotes.some(n=>n.id===note.id))data.deletedNotes.push(note);
