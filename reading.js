@@ -4,13 +4,13 @@ function passageOptions(selected=''){
   return '<option value="">Không thêm vào bài đọc</option>'+data.passages.map(p=>`<option value="${esc(p.id)}" ${p.id===selected?'selected':''}>${esc(p.title)}</option>`).join('');
 }
 function passageWords(passage){const ids=new Set(passage.wordIds);return data.words.filter(w=>ids.has(w.id));}
-function readingNavigation(){return `<div class="reading-navigation" aria-label="Nội dung Reading"><button class="text-button" data-reading-tab="passages" aria-pressed="${readingState.tab==='passages'}">Bài đọc của tôi</button><button class="text-button" data-reading-tab="sources" aria-pressed="${readingState.tab==='sources'}">Nguồn đã lưu ${icon('link')}</button></div>`;}
+function readingNavigation(){return `<div class="reading-navigation" aria-label="Nội dung Reading"><button class="text-button" data-reading-tab="passages" aria-pressed="${readingState.tab==='passages'}">Reading của tôi</button><button class="text-button" data-reading-tab="sources" aria-pressed="${readingState.tab==='sources'}">Nguồn đã lưu ${icon('link')}</button></div>`;}
 function readingView(){
   if(readingState.tab==='sources')return readingNavigation()+readingSourcesView();
   const passage=data.passages.find(p=>p.id===readingState.activeId);
   if(passage)return readingNavigation()+readingDetail(passage);
   readingState.activeId='';
-  return readingNavigation()+heading('Bài đọc của tôi','Gom từ theo từng bài Reading để nhớ cả nội dung và ngữ cảnh.',button('Tạo bài đọc','data-reading-action="create"','primary','plus'))+
+  return readingNavigation()+heading('Reading','Gom từ theo từng bài Reading để nhớ cả nội dung và ngữ cảnh.',button('Tạo bài đọc','data-reading-action="create"','primary','plus'))+
     `<section class="reading-tools"><label class="search-field">${icon('search')}<input type="search" id="reading-search" value="${esc(readingState.query)}" placeholder="Tìm bài đọc, nguồn hoặc từ vựng…" aria-label="Tìm bài đọc"></label><label class="reading-topic-label">Chủ đề<select id="reading-topic-filter">${topicOptions(readingState.topic)}</select></label></section><div id="reading-list">${readingList()}</div>`;
 }
 function readingList(){

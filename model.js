@@ -178,7 +178,7 @@
         if(new Date(incoming.lastStudy)>new Date(data.lastStudy||0)){data.lastStudy=incoming.lastStudy;data.streak=incoming.streak;}data.recoverySnapshot={at:now,data:before};break;
       }
       case 'RESTORE_SNAPSHOT':{if(!raw.recoverySnapshot?.data)fail('Chưa có dữ liệu khôi phục trước khi nhập.');const current=snapshot(data),restored=normalize(raw.recoverySnapshot.data,now);restored.recoverySnapshot={at:now,data:current};restored.revision=data.revision+1;return {data:restored,result:{restored:true}};}
-      default:fail('Thao tác không được hỗ trợ.');
+      default:fail('Thao tác không được hỗ trợ.','UNSUPPORTED_COMMAND');
     }
     data=normalize(data,now);data.revision++;return {data,result};
   }
