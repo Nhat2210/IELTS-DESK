@@ -29,11 +29,29 @@
   const icon = (name, cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.book}</svg>`;
   const isExtension = Boolean(globalThis.chrome?.storage?.local);
   let previewQueue=Promise.resolve();
-  async function rpc(message){const response=await chrome.runtime.sendMessage(message);if(!response?.ok){const message=response?.error?.message||'Không kết nối được dữ liệu. Tải lại extension rồi thử lại.';const error=Object.assign(new Error(message),response?.error);if(/quota|QUOTA_BYTES/i.test(message))error.message='Bộ nhớ thiết bị đã đầy. Hãy xuất bản sao lưu trước khi thử lại.';throw error;}return response.result;}
+  const reloadMessage='Giao diện và phần xử lý của extension chưa đồng bộ. Vào chrome://extensions, bấm Reload IELTS Desk, rồi tải lại trang này.';
+  let workerVersionVerified=false;
+  function checkWorkerVersion(data){
+    if(data?.schemaVersion!==DeskModel.VERSION){workerVersionVerified=false;throw Object.assign(new Error(reloadMessage),{code:'VERSION_MISMATCH'});}
+    workerVersionVerified=true;return data;
+  }
+  async function rpc(message){
+    const response=await chrome.runtime.sendMessage(message);
+    if(!response?.ok){
+      const message=response?.error?.message||'Không kết nối được dữ liệu. Tải lại extension rồi thử lại.';
+      const error=Object.assign(new Error(message),response?.error);
+      if(error.code==='VERSION_MISMATCH'||error.code==='UNSUPPORTED_COMMAND'||message==='Thao tác không được hỗ trợ.'){
+        workerVersionVerified=false;error.message=reloadMessage;
+      }else if(/quota|QUOTA_BYTES/i.test(message))error.message='Bộ nhớ thiết bị đã đầy. Hãy xuất bản sao lưu trước khi thử lại.';
+      throw error;
+    }
+    return response.result;
+  }
+  async function verifyWorker(){if(!workerVersionVerified)checkWorkerVersion(await rpc({type:'DESK_GET'}));}
   function preview(task){const run=async()=>{const raw=JSON.parse(localStorage.getItem('ielts-desk')||'{}'),data=DeskModel.normalize(raw);const result=await task(data);return result;};if(navigator.locks)return navigator.locks.request('ielts-desk-data',run);const next=previewQueue.then(run);previewQueue=next.catch(()=>{});return next;}
   const store={
-    async get(){if(isExtension)return rpc({type:'DESK_GET'});return preview(data=>{localStorage.setItem('ielts-desk',JSON.stringify(data));return data;});},
-    async command(type,payload={}){if(isExtension)return rpc({type:'DESK_COMMAND',command:type,payload});return preview(data=>{const result=DeskModel.apply(data,{type,payload});localStorage.setItem('ielts-desk',JSON.stringify(result.data));return result;});},
+    async get(){if(isExtension)return checkWorkerVersion(await rpc({type:'DESK_GET'}));return preview(data=>{localStorage.setItem('ielts-desk',JSON.stringify(data));return data;});},
+    async command(type,payload={}){if(isExtension){await verifyWorker();return rpc({type:'DESK_COMMAND',command:type,payload,modelVersion:DeskModel.VERSION});}return preview(data=>{const result=DeskModel.apply(data,{type,payload});localStorage.setItem('ielts-desk',JSON.stringify(result.data));return result;});},
     async exportBackup(){return DeskModel.backup(await this.get());},
     async captureStatus(){return isExtension?rpc({type:'IELTS_CAPTURE_STATE'}):{enabled:false,permissionGranted:false,excludedSites:[]};},
     async setCapture(enabled){if(!isExtension)throw new Error('Mở từ extension đã cài để thay đổi quyền website.');if(enabled&&!await chrome.permissions.request({origins:['http://*/*','https://*/*']}))throw new Error('Chưa cấp quyền. Bạn vẫn có thể lưu từ bằng menu chuột phải.');const result=await this.command('PATCH_SETTINGS',{captureEnabled:enabled});if(enabled){const [tab]=await chrome.tabs.query({active:true,currentWindow:true});if(tab?.id)await chrome.scripting.executeScript({target:{tabId:tab.id},files:['capture-utils.js','content.js']}).catch(()=>{});}return result;}
