@@ -24,7 +24,8 @@ async function syncCapture(settings){
   const config={enabled:settings.captureEnabled&&allowed,excludedSites:settings.excludedSites};
   const tabs=await chrome.tabs.query({});await Promise.all(tabs.map(tab=>chrome.tabs.sendMessage(tab.id,{type:'IELTS_CAPTURE_CONFIG',config}).catch(()=>{})));
 }
-async function command(type,payload){
+async function command(type,payload,modelVersion){
+  if(modelVersion!==undefined&&modelVersion!==DeskModel.VERSION)throw Object.assign(new Error('Phiên bản giao diện và phần xử lý chưa đồng bộ.'),{code:'VERSION_MISMATCH'});
   const before=await readData(),{data,result}=DeskModel.apply(before,{type,payload});
   if(type==='PATCH_SETTINGS'||type==='RESTORE_SNAPSHOT'){
     try{await syncCapture(data.settings);await chrome.storage.local.set(data);}catch(error){await syncCapture(before.settings).catch(()=>{});throw new Error('Chưa lưu được dữ liệu hoặc tùy chọn website. Dữ liệu cũ vẫn được giữ. Bạn thử lại nhé.');}
@@ -35,7 +36,7 @@ const uiSender=sender=>sender.url?.startsWith(chrome.runtime.getURL(''));
 chrome.runtime.onMessage.addListener((message,sender,sendResponse)=>{
   let task;
   if(message.type==='DESK_GET'&&uiSender(sender))task=()=>readData();
-  else if(message.type==='DESK_COMMAND'&&uiSender(sender))task=()=>command(message.command,message.payload);
+  else if(message.type==='DESK_COMMAND'&&uiSender(sender))task=()=>command(message.command,message.payload,message.modelVersion);
   else if(message.type==='IELTS_CAPTURE_STATE')task=async()=>captureStatus((await readData()).settings);
   else if(message.type==='IELTS_SAVE_SELECTION')task=async()=>{
     const sentence=typeof message.context==='string'?message.context:'';

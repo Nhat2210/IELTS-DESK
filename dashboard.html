@@ -10,19 +10,27 @@
   <button class="nav-scrim" id="nav-scrim" aria-label="Đóng điều hướng" hidden></button>
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="?view=today"><img src="public/icons/mark.svg" alt=""><span><b>IELTS Desk</b><small>Góc học cá nhân</small></span></a>
-    <p class="nav-label">Không gian học</p>
     <nav class="main-nav" aria-label="Điều hướng chính">
       <button class="nav-item" data-view="today"><span data-icon="home"></span><span>Hôm nay</span></button>
-      <button class="nav-item" data-view="vocabulary"><span data-icon="book"></span><span>Từ vựng</span><span class="nav-count" id="word-total">0</span></button>
-      <button class="nav-item" data-view="library"><span data-icon="inbox"></span><span>Chủ đề & nhóm</span></button>
-      <button class="nav-item" data-view="notes"><span data-icon="pen"></span><span>Ghi chú</span></button>
-      <button class="nav-item" data-view="review"><span data-icon="cards"></span><span>Ôn tập</span></button>
-      <button class="nav-item" data-view="reading"><span data-icon="link"></span><span>Bài đọc</span></button>
-      <button class="nav-item" data-view="writing"><span data-icon="pen"></span><span>Luyện viết</span></button>
-      <button class="nav-item" data-view="progress"><span data-icon="chart"></span><span>Tiến độ</span></button>
-    <button class="nav-item" data-view="trash"><span data-icon="trash"></span><span>Thùng rác</span></button>
-    <button class="nav-item" data-view="settings"><span data-icon="lock"></span><span>Dữ liệu & tùy chọn</span></button></nav>
-    <div class="sidebar-bottom"><div class="privacy-note"><span data-icon="lock"></span><div><b>Góc học riêng của bạn</b><p>Dữ liệu lưu trên thiết bị này.</p></div></div><div class="profile"><span class="avatar">N</span><div><b>Nhật</b><small>Học đều, nhớ lâu.</small></div></div></div>
+      <div class="nav-group" role="group" aria-labelledby="nav-study-label">
+        <p class="nav-label" id="nav-study-label">Học tập</p>
+        <button class="nav-item" data-view="reading"><span data-icon="link"></span><span>Reading</span></button>
+        <button class="nav-item" data-view="vocabulary"><span data-icon="book"></span><span>Vocabulary</span></button>
+        <button class="nav-item" data-view="review"><span data-icon="cards"></span><span>Ôn tập</span><span class="nav-count" id="review-due" hidden></span></button>
+        <button class="nav-item" data-view="notes"><span data-icon="pen"></span><span>Ghi chú</span></button>
+        <button class="nav-item" data-view="writing"><span data-icon="pen"></span><span>Luyện viết</span></button>
+      </div>
+      <div class="nav-progress">
+        <button class="nav-item" data-view="progress"><span data-icon="chart"></span><span>Tiến độ</span></button>
+      </div>
+      <div class="nav-group nav-management" role="group" aria-labelledby="nav-management-label">
+        <p class="nav-label" id="nav-management-label">Quản lý</p>
+        <button class="nav-item" data-view="library"><span data-icon="inbox"></span><span>Chủ đề & nhóm</span></button>
+        <button class="nav-item" data-view="trash"><span data-icon="trash"></span><span>Thùng rác</span></button>
+        <button class="nav-item" data-view="settings"><span data-icon="lock"></span><span>Dữ liệu & tùy chọn</span></button>
+      </div>
+    </nav>
+    <div class="sidebar-bottom"><div class="profile"><span class="avatar">N</span><div><b>Nhật</b><small>Học đều, nhớ lâu.</small></div></div></div>
   </aside>
   <main class="main-area"><div class="content" id="app"></div><footer class="desk-footer"><span>IELTS Desk</span><span>Một chút mỗi ngày.</span></footer></main>
   <div class="toast" id="toast" role="status"></div>
